@@ -40,17 +40,14 @@ int main()
 void ConvertFromXMLtoCSV()
 {
 	string filename;
-//	cout << "Enter the filename of the XML file to convert to CSV: ";
-//	getline(cin, filename);
+	cout << "Enter the filename of the XML file to convert to CSV: ";
+	getline(cin, filename);
 
-	//string csvFilename = filename.substr(0, filename.find_first_of('.')) + "csv";
-	//ofstream csvFile;
-	//csvFile.open(csvFilename);
-
-//	ifstream xmlFile(filename);
-	ifstream xmlFile("testXML.xml");	
+	string csvFilename = filename.substr(0, filename.find_first_of('.')) + ".csv";
 	ofstream csvFile;
-	csvFile.open("textXML.csv");
+	csvFile.open(csvFilename);
+
+	ifstream xmlFile(filename);
 	string line;
 	string groupTitle;
 	vector <string> rowText;
@@ -73,7 +70,10 @@ void ConvertFromXMLtoCSV()
 				// Ignore blank lines, set up lines (as above), and lines with the group title found above
 				if ((line != "") && (line.at(line.length() - 2) != '?') && (line.find(groupTitle) == string::npos))
 				{
-					string title = line.substr(1, line.find_first_of('>') - 1);
+					//string title = line.substr(1, line.find_first_of('>') - 1);
+
+					string title = line.substr((line.find_first_of('<') + 1), (line.size() - 1));
+					title = title.substr(0, title.find_first_of('>'));
 
 					if (!IsTitleAdded(rowText, title))
 						rowText.push_back(title);
@@ -94,7 +94,7 @@ void ConvertFromXMLtoCSV()
 		// Populate other lines
 		while (getline(xmlFile, line))
 		{
-			if (line.find(groupTitle) != string::npos)
+			if ((line.find(groupTitle) != string::npos) && (line.at(line.length() - 2) != '?'))
 				iTitleCounter++;
 
 			if (iTitleCounter == 2)
@@ -121,11 +121,11 @@ void ConvertFromXMLtoCSV()
 		cout << "Could not open xml file";
 	}
 }
-
+	
 void CreateXMLFile()
 {
 	ofstream xmlFile;
-	xmlFile.open("testXML.xml");
+	xmlFile.open("test.xml");
 	xmlFile << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n\n";
 
 	// Input favourite game information
@@ -165,7 +165,7 @@ void CreateXMLFile()
 		xmlFile << "<title> COD Advance Warfare </title>\n";
 		xmlFile << "<year> 2014 </year>\n";
 		xmlFile << "<genre> FPS </genre>\n";
-		xmlFile << "<platform> XBOX One </platform>\n";
+		xmlFile << "<platform> Xbox One </platform>\n";
 		xmlFile << "<developer> Sledgehammer Games </developer>\n";
 	xmlFile << "</game>\n\n";
 
