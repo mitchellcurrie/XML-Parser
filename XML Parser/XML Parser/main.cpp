@@ -2,30 +2,75 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <conio.h>
 
 using namespace std;
 
-void CreateXMLFile();
-void CreateCSVFile();
+void CreateXMLFile(string _filename);
+void CreateCSVFile(string _filename);
 void ConvertFromXMLtoCSV();
 void ConvertFromCSVtoXML();
 bool IsTitleAdded(vector<string> _vector, string _strToCheck);
 void AddCSVRow(ofstream& _file, vector<string> _vector);
 void AddXMLSection(ofstream& _file, vector<string> _titleVector, vector<string> _gameInfoVector, string _child);
 
-
 int main()
 {
-	cout << "XML Parser" << endl;
+	char iChoice = '0';
 
-//	CreateXMLFile();
-//	CreateCSVFile();
+	cout << "XML Parser" << endl << endl;
+	cout << "You do not need to enter any file extensions! (.xml or .csv)" << endl << endl;
+	cout << "Press 1 to create an XML file" << endl;
+	cout << "Press 2 to create a CSV file" << endl;
+	cout << "Press 3 to convert from XML to CSV" << endl;
+	cout << "Press 4 to convert from CSV to XML" << endl;
+	cout << "Press 5 to quit" << endl << endl;
 
-//	ConvertFromXMLtoCSV();
-	ConvertFromCSVtoXML();
+	while (iChoice != 5)
+	{
+		iChoice = _getch();
+
+		switch (iChoice)
+		{
+			case '1':
+			{
+				string filename;
+				cout << "Enter a name for the xml file: ";
+				getline(cin, filename);
+				CreateXMLFile(filename);
+				break;
+			}
+			case '2':
+			{
+				string filename;
+				cout << "Enter a name for the csv file: ";
+				getline(cin, filename);
+				CreateCSVFile(filename);
+				break;
+			}
+			case '3':
+			{
+				ConvertFromXMLtoCSV();
+				break;
+			}
+			case '4':
+			{
+				ConvertFromCSVtoXML();
+				break;
+			}
+			case '5':
+			{
+				return (0);
+				break;
+			}
+			default: break;
+		}
+	}
 
 	int i = 0;
 	cin >> i;
+
+	return (0);
 }
 
 void ConvertFromCSVtoXML()
@@ -34,11 +79,7 @@ void ConvertFromCSVtoXML()
 	cout << "Enter the filename of the CSV file to convert to XML: ";
 	getline(cin, filename);
 
-	string xmlFilename = filename.substr(0, filename.find_first_of('.')) + ".xml";
-	ofstream xmlFile;
-	xmlFile.open(xmlFilename);
-
-	ifstream csvFile(filename);
+	ifstream csvFile(filename + ".csv");
 	string line;
 	string data;
 	string root = "rootNode";
@@ -48,11 +89,14 @@ void ConvertFromCSVtoXML()
 	bool bTitlesSet = false;
 	bool bRowSet = false;
 
-	xmlFile << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n\n";
-	xmlFile << "<" << root << ">\n\n";
-
 	if (csvFile.is_open())
 	{			
+		ofstream xmlFile;
+		xmlFile.open(filename + ".xml");
+
+		xmlFile << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n\n";
+		xmlFile << "<" << root << ">\n\n";
+
 		(getline(csvFile, line));
 
 		while (!bTitlesSet)
@@ -99,10 +143,16 @@ void ConvertFromCSVtoXML()
 		}
 
 		xmlFile << "</" << root << ">\n\n";
+
+		// Close files
+		xmlFile.close();
+		csvFile.close();
+
+		cout << "CSV file: " << filename << ".csv converted to: " << filename << ".xml" << endl;
 	}
 	else
 	{
-		cout << "Could not open csv file";
+		cout << "Could not open csv file" << endl;
 	}
 
 }
@@ -112,11 +162,7 @@ void ConvertFromXMLtoCSV()
 	cout << "Enter the filename of the XML file to convert to CSV: ";
 	getline(cin, filename);
 
-	string csvFilename = filename.substr(0, filename.find_first_of('.')) + ".csv";
-	ofstream csvFile;
-	csvFile.open(csvFilename);
-
-	ifstream xmlFile(filename);
+	ifstream xmlFile(filename + ".xml");
 	string line;
 	string firstTitle;
 	string groupTitle;
@@ -127,6 +173,9 @@ void ConvertFromXMLtoCSV()
 
 	if (xmlFile.is_open())
 	{
+		ofstream csvFile;
+		csvFile.open(filename + ".csv");
+
 		// Get XML titles
 		while (getline(xmlFile, line))
 		{	
@@ -135,12 +184,19 @@ void ConvertFromXMLtoCSV()
 			{
 				if (bPassedFirstTitle)
 				{
-					groupTitle = line.substr(1, line.length() - 2);
+					//groupTitle = line.substr(1, line.length() - 2);
+					groupTitle = line.substr((line.find_first_of('<') + 1), (line.size() - 1));
+					groupTitle = groupTitle.substr(0, groupTitle.find_first_of('>'));
+
+
 					bGroupTitleSet = true;
 				}
 				else
 				{
-					firstTitle = line.substr(1, line.length() - 2);
+				//	firstTitle = line.substr(1, line.length() - 2);
+					firstTitle = line.substr((line.find_first_of('<') + 1), (line.size() - 1));
+					firstTitle = firstTitle.substr(0, firstTitle.find_first_of('>'));
+
 					bPassedFirstTitle = true;
 				}			
 			}		
@@ -196,74 +252,82 @@ void ConvertFromXMLtoCSV()
 		// Close files
 		xmlFile.close();
 		csvFile.close();
+
+		cout << "XML file: " << filename << ".xml converted to: " << filename << ".csv" << endl;
 	}
 	else
 	{
-		cout << "Could not open xml file";
+		cout << "Could not open xml file" << endl;
 	}
 }
-void CreateXMLFile()
+void CreateXMLFile(string _filename)
 {
+	string filename = _filename + ".xml";
 	ofstream xmlFile;
-	xmlFile.open("test.xml");
+	xmlFile.open(filename);
 	xmlFile << "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n\n";
 
 	// Input favourite game information
 	xmlFile << "<favouriteGames>\n\n";
-		xmlFile << "<game>\n";
-			xmlFile << "<title> Uncharted 2 </title>\n";
-			xmlFile << "<year> 2009 </year>\n";
-			xmlFile << "<genre> Action-Adventure </genre>\n";
-			xmlFile << "<platform> PS3 </platform>\n";
-			xmlFile << "<developer> Naughty Dog </developer>\n";
-		xmlFile << "</game>\n\n";
+		xmlFile << "\t<game>\n";
+			xmlFile << "\t\t<title> Uncharted 2 </title>\n";
+			xmlFile << "\t\t<year> 2009 </year>\n";
+			xmlFile << "\t\t<genre> Action-Adventure </genre>\n";
+			xmlFile << "\t\t<platform> PS3 </platform>\n";
+			xmlFile << "\t\t<developer> Naughty Dog </developer>\n";
+		xmlFile << "\t</game>\n\n";
 
-		xmlFile << "<game>\n";
-			xmlFile << "<title> Red Dead Redemption </title>\n";
-			xmlFile << "<year> 2010 </year>\n";
-			xmlFile << "<genre> Action-Adventure </genre>\n";
-			xmlFile << "<platform> PS3 </platform>\n";
-			xmlFile << "<developer> Rockstar San Diego </developer>\n";
-		xmlFile << "</game>\n\n";
+		xmlFile << "\t<game>\n";
+			xmlFile << "\t\t<title> Red Dead Redemption </title>\n";
+			xmlFile << "\t\t<year> 2010 </year>\n";
+			xmlFile << "\t\t<genre> Action-Adventure </genre>\n";
+			xmlFile << "\t\t<platform> PS3 </platform>\n";
+			xmlFile << "\t\t<developer> Rockstar San Diego </developer>\n";
+		xmlFile << "\t</game>\n\n";
 
-		xmlFile << "<game>\n";
-			xmlFile << "<title> Dirt 3 </title>\n";
-			xmlFile << "<year> 2011 </year>\n";
-			xmlFile << "<genre> Racing </genre>\n";
-			xmlFile << "<platform> PS3 </platform>\n";
-			xmlFile << "<developer> Codemasters </developer>\n";
-		xmlFile << "</game>\n\n";
+		xmlFile << "\t<game>\n";
+			xmlFile << "\t\t<title> Dirt 3 </title>\n";
+			xmlFile << "\t\t<year> 2011 </year>\n";
+			xmlFile << "\t\t<genre> Racing </genre>\n";
+			xmlFile << "\t\t<platform> PS3 </platform>\n";
+			xmlFile << "\t\t<developer> Codemasters </developer>\n";
+		xmlFile << "\t</game>\n\n";
 
-		xmlFile << "<game>\n";
-			xmlFile << "<title> GTA V </title>\n";
-			xmlFile << "<year> 2013 </year>\n";
-			xmlFile << "<genre> Action-Adventure </genre>\n";
-			xmlFile << "<platform> PS3 </platform>\n";
-			xmlFile << "<developer> Rockstar North </developer>\n";
-		xmlFile << "</game>\n\n";
+		xmlFile << "\t<game>\n";
+			xmlFile << "\t\t<title> GTA V </title>\n";
+			xmlFile << "\t\t<year> 2013 </year>\n";
+			xmlFile << "\t\t<genre> Action-Adventure </genre>\n";
+			xmlFile << "\t\t<platform> PS3 </platform>\n";
+			xmlFile << "\t\t<developer> Rockstar North </developer>\n";
+		xmlFile << "\t</game>\n\n";
 
-		xmlFile << "<game>\n";
-			xmlFile << "<title> COD Advance Warfare </title>\n";
-			xmlFile << "<year> 2014 </year>\n";
-			xmlFile << "<genre> FPS </genre>\n";
-			xmlFile << "<platform> Xbox One </platform>\n";
-			xmlFile << "<developer> Sledgehammer Games </developer>\n";
-		xmlFile << "</game>\n\n";
+		xmlFile << "\t<game>\n";
+			xmlFile << "\t\t<title> COD Advance Warfare </title>\n";
+			xmlFile << "\t\t<year> 2014 </year>\n";
+			xmlFile << "\t\t<genre> FPS </genre>\n";
+			xmlFile << "\t\t<platform> Xbox One </platform>\n";
+			xmlFile << "\t\t<developer> Sledgehammer Games </developer>\n";
+		xmlFile << "\t</game>\n\n";
 	xmlFile << "</favouriteGames>\n";
 
 	xmlFile.close();
+
+	cout << "XML file created: " << filename << endl;
 }
-void CreateCSVFile()
+void CreateCSVFile(string _filename)
 {
+	string filename = _filename + ".csv";
 	ofstream csvFile;
-	csvFile.open("CSV File.csv");
-	csvFile << "Game, Year, Genre, Platform, Developer\n";
+	csvFile.open(filename);
+	csvFile << "game, year, genre, platform, developer\n";
 	csvFile << "Uncharted 2, 2009, Action-Adventure, PS3, Naughty Dog\n";
 	csvFile << "Red Dead Redemption, 2010, Action-Adventure, PS3, Rockstar San Diego\n";
 	csvFile << "Dirt 3, 2011, Racing, PS3, Codemasters\n";
 	csvFile << "GTA V, 2013, Action-Adventure, PS3, Rockstar North\n";
 	csvFile << "COD Advanced Warfare, 2014, FPS, XBOX One, Sledgehammer Games\n";
 	csvFile.close();
+
+	cout << "CSV file created: " << filename << endl;
 }
 bool IsTitleAdded(vector<string> _vector, string _strToCheck)
 {
