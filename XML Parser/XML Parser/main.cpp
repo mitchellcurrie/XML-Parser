@@ -19,7 +19,7 @@ int main()
 	char iChoice = '0';
 
 	cout << "XML Parser" << endl << endl;
-	cout << "You do not need to enter any file extensions! (.xml or .csv)" << endl << endl;
+	cout << "You do NOT need to enter any file extensions at any time! (.xml or .csv)" << endl << endl;
 	cout << "Press 1 to create an XML file" << endl;
 	cout << "Press 2 to create a CSV file" << endl;
 	cout << "Press 3 to convert from XML to CSV" << endl;
